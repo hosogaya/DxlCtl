@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "vector": "cpp",
-        "algorithm": "cpp"
-    },
-    "C_Cpp.errorSquiggles": "disabled"
-}
