@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "Dynamixel/Dynamixel.h"
+#include "Dynamixel-0.2.0/Dynamixel.h"
 #include <algorithm>
 #include <vector>
 #include <memory>
