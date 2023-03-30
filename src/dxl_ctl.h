@@ -6,7 +6,7 @@
 #include <memory>
 
 class DxlCtl {
-    private:
+    protected:
         std::unique_ptr<Dynamixel> dxif_;
         std::vector<uint8_t> id_;
         std::vector<int32_t> origin_;
@@ -59,7 +59,7 @@ class DxlCtl {
         DxlCtl(const uint8_t pin = 0);
 
         bool find(const uint8_t id);
-        size_t getSize();
+        size_t getSize() const;
 
         const std::vector<uint8_t>& getID();
         

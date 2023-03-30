@@ -10,7 +10,7 @@ bool DxlCtl::find(const uint8_t id) {
     return false;
 }
 
-size_t DxlCtl::getSize() {return id_.size();}
+size_t DxlCtl::getSize() const {return id_.size();}
 
 void DxlCtl::attach(HardwareSerial& serial, const size_t baudrate) {
     serial.begin(baudrate);

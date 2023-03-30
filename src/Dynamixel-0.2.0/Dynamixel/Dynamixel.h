@@ -460,7 +460,7 @@ public:
 		return true;
 	}
 		
-	int syncreadmultipledata(uint8_t *id, uint32_t *x,const uint16_t start_addr,const uint16_t *bytes ,const uint8_t data_count ,const uint8_t id_count){
+	bool syncreadmultipledata(uint8_t *id, uint32_t *x,const uint16_t start_addr,const uint16_t *bytes ,const uint8_t data_count ,const uint8_t id_count){
 		uint16_t sum_bytes=0;
 		for(int index=0;index<data_count;index++)
 			sum_bytes +=bytes[index];
@@ -482,10 +482,10 @@ public:
 					sbyte +=bytes[index2];
 				}
 			}else{
-				return id[index];
+				return false;
 			}
 		}
-		return -1;
+		return true;
 	}
 	
 		
