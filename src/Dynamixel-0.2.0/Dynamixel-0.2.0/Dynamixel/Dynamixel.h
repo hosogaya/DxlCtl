@@ -535,9 +535,12 @@ public:
         bool setIndirectAddress(uint8_t id, uint8_t nth, uint16_t addr)
         {
             if (nth > 128) return false;
+            if (info.find(id) == info.end()) return false;
+            uint16_t indirect_addr = info[id].ct->ct[Reg::INDIRECT_ADDR_1].addr + 2 * nth;
+            uint8_t indirect_size = info[id].ct->ct[Reg::INDIRECT_ADDR_1].size;
             uint8_t error = 0;
             // int result = packet_handler->write2ByteTxRx(id, info[id].ct->ct[Reg::INDIRECT_ADDR_1].addr + 2 * nth, addr, &error);
-            int result = packet_handler->writeBytesTxRx(id, info[id].ct->ct[Reg::INDIRECT_ADDR_1].addr + 2 * nth, addr, info[id].ct->ct[Reg::INDIRECT_ADDR_1].size, &error);
+            int result = packet_handler->writeBytesTxRx(id, indirect_addr, addr, indirect_size, &error);
             return handleResult(id, result, error);
         }
         bool setIndirectData(uint8_t id, uint8_t nth, uint8_t data)

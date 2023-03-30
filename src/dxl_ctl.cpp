@@ -197,3 +197,53 @@ bool DxlCtl::syncWriteCur(std::vector<float>& cur) {
 
     return dxif_->syncwritegoalCurrent(id_.data(), buff16_.data(), id_.size());
 }
+
+bool DxlCtl::addIndirectData(const uint16_t addr, const uint8_t data_size) {
+    for (size_t i=0; i<id_.size(); ++i) {
+        for (uint8_t j=0; j<data_size; ++j) {
+            dxif_->setIndirectAddress(id_[i], indirect_data_num_+j, addr+j);
+        }
+    }
+    indirect_data_num_ += data_size;
+    indirect_data_size_.push_back(data_size);
+}
+
+bool DxlCtl::syncReadPosVelCurErr(std::vector<uint8_t>& err, std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur) {
+    // check size 
+    if (id_.size() != rad.size()) rad.resize(id_.size());
+    if (id_.size() != vel.size()) vel.resize(id_.size());
+    if (id_.size() != cur.size()) cur.resize(id_.size());
+    if (id_.size() != err.size()) err.resize(id_.size());
+    if (buffu32_.size() != indirect_data_size_.size()*id_.size()) buffu32_.resize(indirect_data_size_.size()*id_.size());
+
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), indirect_data_size_.size(), id_.size())) return false;
+
+    for (size_t i=0; i<id_.size(); ++i) {
+        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i+3]), origin_[i]);
+        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i+2]));
+        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i+1]));
+        err[i] = static_cast<uint8_t>(buffu32_[i]);
+    }
+    return true;
+}
+
+bool DxlCtl::syncReadPosVelCurErrTor(std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur, std::vector<uint8_t>& err, std::vector<uint8_t>& tor) {
+    // check size 
+    if (id_.size() != rad.size()) rad.resize(id_.size());
+    if (id_.size() != vel.size()) vel.resize(id_.size());
+    if (id_.size() != cur.size()) cur.resize(id_.size());
+    if (id_.size() != err.size()) err.resize(id_.size());
+    if (id_.size() != tor.size()) tor.resize(id_.size());
+    if (buffu32_.size() != indirect_data_size_.size()*id_.size()) buffu32_.resize(indirect_data_size_.size()*id_.size());
+
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), indirect_data_size_.size(), id_.size())) return false;
+
+    for (size_t i=0; i<id_.size(); ++i) {
+        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i+4]), origin_[i]);
+        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i+3]));
+        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i+2]));
+        err[i] = static_cast<uint8_t>(buffu32_[i+1]);
+        tor[i] = static_cast<uint8_t>(buffu32_[i]);
+    }
+    return true;
+}
