@@ -154,12 +154,13 @@ bool DxlCtl::syncReadPosVelCur(std::vector<float>& rad, std::vector<float>& vel,
     if (buffu32_.size() != 3*id_.size()) buffu32_.resize(3*id_.size());
 
     uint16_t bytes[] = {2,4,4};
-    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::PresentCurrent, bytes, 3, id_.size())) return false;
+    size_t stride = 3;
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::PresentCurrent, bytes, stride, id_.size())) return false;
 
     for (size_t i=0; i<id_.size(); ++i) {
-        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i+2]), origin_[i]);
-        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i+1]));
-        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i]));
+        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i*stride+2]), origin_[i]);
+        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i*stride+1]));
+        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i*stride]));
     }
     return true;
 }
@@ -216,13 +217,14 @@ bool DxlCtl::syncReadPosVelCurErr(std::vector<uint8_t>& err, std::vector<float>&
     if (id_.size() != err.size()) err.resize(id_.size());
     if (buffu32_.size() != indirect_data_size_.size()*id_.size()) buffu32_.resize(indirect_data_size_.size()*id_.size());
 
-    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), indirect_data_size_.size(), id_.size())) return false;
+    size_t stride = indirect_data_size_.size();
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), stride, id_.size())) return false;
 
     for (size_t i=0; i<id_.size(); ++i) {
-        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i+3]), origin_[i]);
-        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i+2]));
-        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i+1]));
-        err[i] = static_cast<uint8_t>(buffu32_[i]);
+        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i*stride+3]), origin_[i]);
+        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i*stride+2]));
+        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i*stride+1]));
+        err[i] = static_cast<uint8_t>(buffu32_[i*stride]);
     }
     return true;
 }
@@ -236,14 +238,15 @@ bool DxlCtl::syncReadPosVelCurErrTor(std::vector<float>& rad, std::vector<float>
     if (id_.size() != tor.size()) tor.resize(id_.size());
     if (buffu32_.size() != indirect_data_size_.size()*id_.size()) buffu32_.resize(indirect_data_size_.size()*id_.size());
 
-    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), indirect_data_size_.size(), id_.size())) return false;
+    size_t stride = indirect_data_size_.size();
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::IndirectData1, indirect_data_size_.data(), stride, id_.size())) return false;
 
     for (size_t i=0; i<id_.size(); ++i) {
-        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i+4]), origin_[i]);
-        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i+3]));
-        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i+2]));
-        err[i] = static_cast<uint8_t>(buffu32_[i+1]);
-        tor[i] = static_cast<uint8_t>(buffu32_[i]);
+        rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i*stride+4]), origin_[i]);
+        vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i*stride+3]));
+        cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i*stride+2]));
+        err[i] = static_cast<uint8_t>(buffu32_[i*stride+1]);
+        tor[i] = static_cast<uint8_t>(buffu32_[i*stride]);
     }
     return true;
 }
