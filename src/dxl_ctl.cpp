@@ -200,13 +200,16 @@ bool DxlCtl::syncWriteCur(std::vector<float>& cur) {
 }
 
 bool DxlCtl::addIndirectData(const uint16_t addr, const uint8_t data_size) {
+    bool result = true;
     for (size_t i=0; i<id_.size(); ++i) {
         for (uint8_t j=0; j<data_size; ++j) {
-            dxif_->setIndirectAddress(id_[i], indirect_data_num_+j, addr+j);
+            result &= dxif_->setIndirectAddress(id_[i], indirect_data_num_+j, addr+j);
         }
     }
+    if (!result) return false;
     indirect_data_num_ += data_size;
     indirect_data_size_.push_back(data_size);
+    return true;
 }
 
 bool DxlCtl::syncReadPosVelCurErr(std::vector<uint8_t>& err, std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur) {
