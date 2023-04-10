@@ -45,6 +45,24 @@ bool DxlCtl::addModel(const std::vector<uint8_t>& id, const std::vector<int32_t>
     return true;
 }
 
+bool DxlCtl::addShutdonwStatus(const HardwareError err) {
+    std::vector<uint8_t> input;
+    input.resize(id_.size());
+    for (uint8_t& i: input) i = shutdown_ | err;
+    if (!dxif_->syncwriteshutdown(id_.data(), input.data(), id_.size())) return false;
+    shutdown_ |= err;
+    return true;
+}
+
+bool DxlCtl::removeShutdownStatus(const HardwareError err) {
+    std::vector<uint8_t> input;
+    input.resize(id_.size());
+    for (uint8_t& i: input) i = shutdown_ - err;
+    if (!dxif_->syncwriteshutdown(id_.data(), input.data(), id_.size())) return false;
+    shutdown_ -= err;
+    return true;
+}
+
 bool DxlCtl::syncWriteOperatingMode(const uint8_t mode) {
     // check size
     if (this->buffu8_.size() != id_.size()) buffu8_.resize(id_.size());
