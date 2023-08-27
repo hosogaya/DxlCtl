@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <memory>
+#include <TeensyThreads.h>
 
 class DxlCtl {
     protected:
@@ -94,10 +95,16 @@ class DxlCtl {
         bool syncReadPos(std::vector<float>& rad);
         bool syncReadCur(std::vector<float>& cur);
         bool syncReadPosVelCur(std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur);
+        bool syncReadPosVelCur(std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur, Threads::Mutex& mx);
         // sync write
         bool syncWritePos(std::vector<float>& rad);
         bool syncWriteVel(std::vector<float>& vel);
         bool syncWriteCur(std::vector<float>& cur);
+        bool syncWritePos(std::vector<float>& rad, Threads::Mutex& mx);
+        bool syncWriteVel(std::vector<float>& vel, Threads::Mutex& mx);
+        bool syncWriteCur(std::vector<float>& cur, Threads::Mutex& mx);
+
+
 
         // indirect Address
         bool addIndirectData(const uint16_t addr, const uint8_t data_size);

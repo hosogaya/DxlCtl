@@ -183,6 +183,29 @@ bool DxlCtl::syncReadPosVelCur(std::vector<float>& rad, std::vector<float>& vel,
     return true;
 }
 
+bool DxlCtl::syncReadPosVelCur(std::vector<float>& rad, std::vector<float>& vel, std::vector<float>& cur, Threads::Mutex& mx)
+{
+    // check size 
+    if (id_.size() != rad.size()) rad.resize(id_.size());
+    if (id_.size() != vel.size()) vel.resize(id_.size());
+    if (id_.size() != cur.size()) cur.resize(id_.size());
+    if (buffu32_.size() != 3*id_.size()) buffu32_.resize(3*id_.size());
+
+    uint16_t bytes[] = {2,4,4};
+    size_t stride = 3;
+    if (!dxif_->syncreadmultipledata(id_.data(), buffu32_.data(), Reg::PresentCurrent, bytes, stride, id_.size())) return false;
+
+    {
+        Threads::Scope lock(mx);
+        for (size_t i=0; i<id_.size(); ++i) {
+            rad[i] = dxl2rad(static_cast<int32_t>(buffu32_[i*stride+2]), origin_[i]);
+            vel[i] = dxl2vel(static_cast<int32_t>(buffu32_[i*stride+1]));
+            cur[i] = dxl2cur(static_cast<int16_t>(buffu32_[i*stride]));
+        }
+    }
+    return true;
+}
+
 bool DxlCtl::syncWritePos(std::vector<float>& rad) {
     // check size
     if (id_.size() != rad.size()) return false;
@@ -213,6 +236,49 @@ bool DxlCtl::syncWriteCur(std::vector<float>& cur) {
 
     // transform
     for (size_t i=0; i<id_.size(); ++i) buff16_[i] = cur2dxl(cur[i]);
+
+    return dxif_->syncwritegoalCurrent(id_.data(), buff16_.data(), id_.size());
+}
+
+bool DxlCtl::syncWritePos(std::vector<float>& rad, Threads::Mutex& mx) {
+    // check size
+    if (id_.size() != rad.size()) return false;
+    if (id_.size() != buff32_.size()) buff32_.resize(id_.size());
+
+    // transform 
+    {
+        Threads::Scope lock(mx);
+        for (size_t i=0; i<id_.size(); ++i) buff32_[i] = rad2dxl(rad[i], origin_[i]);
+    }
+
+    return dxif_->syncwritegoalPosition(id_.data(), buff32_.data(), id_.size());
+}
+
+bool DxlCtl::syncWriteVel(std::vector<float>& vel, Threads::Mutex& mx) {
+    // check size
+    if (id_.size() != vel.size()) return false;
+    if (id_.size() != buff32_.size()) buff32_.resize(id_.size());
+
+    // transform 
+    {
+        Threads::Scope lock(mx);
+        for (size_t i=0; i<id_.size(); ++i) buff32_[i] = vel2dxl(vel[i]);
+    }
+
+    return dxif_->syncwritegoalVelocity(id_.data(), buff32_.data(), id_.size());
+}
+
+
+bool DxlCtl::syncWriteCur(std::vector<float>& cur, Threads::Mutex& mx) {
+    // check size
+    if (id_.size() != cur.size()) cur.resize(id_.size());
+    if (id_.size() != buff16_.size()) buff16_.resize(id_.size());
+
+    // transform
+    {
+        Threads::Scope lock(mx);
+        for (size_t i=0; i<id_.size(); ++i) buff16_[i] = cur2dxl(cur[i]);
+    }
 
     return dxif_->syncwritegoalCurrent(id_.data(), buff16_.data(), id_.size());
 }
