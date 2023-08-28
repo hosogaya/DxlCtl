@@ -65,8 +65,8 @@ class DxlCtl {
         const std::vector<uint8_t>& getID();
         
         void attach(HardwareSerial& serial, const size_t baudrate);
-        bool addModel(const uint8_t id, const int32_t origin);
-        bool addModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin);
+        bool addModel(const uint8_t id, const int32_t origin, const arduino::dynamixel::Model model);
+        bool setModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin, const arduino::dynamixel::Model model);
 
         // operating mode
         bool syncWriteOperatingMode(const uint8_t mode=3);

@@ -24,23 +24,29 @@ void DxlCtl::attach(HardwareSerial& serial, const size_t baudrate) {
 
 const std::vector<uint8_t>& DxlCtl::getID() {return id_;}
 
-bool DxlCtl::addModel(const uint8_t id, const int32_t origin) {
+bool DxlCtl::addModel(const uint8_t id, const int32_t origin, const arduino::dynamixel::Model model) {
     if (find(id)) return false; // already exisit
 
     id_.push_back(id);
     origin_.push_back(origin);
-    dxif_->addModel<DxlModel::MX>(id);
+    if (model == arduino::dynamixel::Model::MX) dxif_->addModel<DxlModel::MX>(id);
+    else if (model == arduino::dynamixel::Model::X) dxif_->addModel<DxlModel::X>(id);
+    else if (model == arduino::dynamixel::Model::PRO) dxif_->addModel<DxlModel::PRO>(id);
+    else dxif_->addModel<DxlModel::OTHER>(id);
     return true;
 }
 
-bool DxlCtl::addModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin) {
+bool DxlCtl::setModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin, const arduino::dynamixel::Model model) {
     if (id.size() != origin.size()) return false;
     id_.resize(id.size());
     origin_.resize(id.size());
     for (size_t i=0; i<id.size(); ++i) {
         id_[i] = id[i];
         origin_[i] = origin[i];
-        dxif_->addModel<DxlModel::MX>(id_[i]);
+        if (model == arduino::dynamixel::Model::MX) dxif_->addModel<DxlModel::MX>(id_[i]);
+        else if (model == arduino::dynamixel::Model::X) dxif_->addModel<DxlModel::X>(id_[i]);
+        else if (model == arduino::dynamixel::Model::PRO) dxif_->addModel<DxlModel::PRO>(id_[i]);
+        else dxif_->addModel<DxlModel::OTHER>(id_[i]);
     }
     return true;
 }
