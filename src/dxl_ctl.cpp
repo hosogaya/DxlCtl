@@ -1,4 +1,4 @@
-#include <dxl_ctl.h>
+#include <dxl_ctl/dxl_ctl.h>
 
 DxlCtl::DxlCtl(const uint8_t pin) {
     dxif_ = std::make_unique<Dynamixel>(pin);
@@ -16,9 +16,6 @@ void DxlCtl::attach(HardwareSerial& serial, const size_t baudrate) {
     serial.begin(baudrate);
     while(!serial);
     dxif_->attach(serial, baudrate);
-    // Serial3.begin(baudrate);
-    // while(!Serial3);
-    // dxif_->attach(Serial3, baudrate);
 }
 
 

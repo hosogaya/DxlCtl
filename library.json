@@ -1,0 +1,17 @@
+{
+    "name": "DxlCtl",
+    "version": "0.0.1",
+    "description": "Dynamixel Control for teensy",
+    "keywords": "Robot Model",
+    "authors":
+    [
+      {
+        "name": "Hirotaka Hosogaya",
+        "email": "hosogaya.hirotaka@gmail.com",
+        "maintainer": true
+      }
+    ],
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": "teensy"
+}

@@ -1,4 +1,4 @@
-#include "../src/dxl_ctl.h"
+#include <dxl_ctl/motor_driver.h>
 
 #include <cmath>
 #include <vector>
@@ -13,7 +13,7 @@ void setup() {
 
     // setup
     dxl3.attach(Serial3, 2000000);
-    if (!dxl3.addModel(id, origin)) {
+    if (!dxl3.setModel(id, origin, arduino::dynamixel::Model::X)) {
         Serial.println("Sizes of id and origin are different");
         exit(1);
     }
