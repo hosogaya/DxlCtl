@@ -14,12 +14,16 @@ public:
     bool ready(const long baudrate, const float period);
     bool start();
     bool stop();
-    void read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
+    void getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
+    bool read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
+    bool write(std::vector<float>& input);
     std::vector<float> getPos(const int chain_id);
     std::vector<float> getVel(const int chain_id);
     std::vector<float> getTor(const int chain_id);
     std::shared_ptr<DxlCtl>& getDriver(const int chain_id);
     int size() const;
+    // return the number of motors connected with the motor chain i. 
+    size_t size(const int i) const {return ids_[i].size();} 
     void setInput(const int chain_id, std::vector<float>& value);
 
     struct Info
@@ -35,6 +39,7 @@ public:
         DxlCtl::OperatingMode mode_;
         size_t num_;
         long period_;
+        long elapsed_time_;
     };
 
 private:

@@ -61,16 +61,17 @@ void threadRW(int i)
     while (info.work_)
     {
         start = micros();
-        info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_);  
+        if (!info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_)) info.work_ = false;  
 
         if (info.mode_ == DxlCtl::PositionControl)
         {
-            info.dxl_->syncWritePos(info.pos_, info.mx_in_);
+            if (!info.dxl_->syncWritePos(info.input_, info.mx_in_)) info.work_ = false;
         }
         else if (info.mode_ == DxlCtl::VelocityControl)
         {
-            info.dxl_->syncWriteVel(info.pos_, info.mx_in_);
+            if (!info.dxl_->syncWriteVel(info.input_, info.mx_in_)) info.work_ = false;
         }
+        info_[i].elapsed_time_ = micros() - start;
         while (micros() - start) threads.yield();
     }
 }
@@ -161,7 +162,7 @@ bool MotorDriver::stop()
     return true;
 }
 
-void MotorDriver::read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
+void MotorDriver::getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
 {
     int index = 0;
     for (int i=0; i<size(); ++i)
@@ -177,6 +178,52 @@ void MotorDriver::read(std::vector<float>& pos, std::vector<float>& vel, std::ve
         }
         index += info_[i].num_;
     }
+}
+
+bool MotorDriver::read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
+{
+    int index = 0;
+    std::vector<float> t_pos, t_vel, t_tor;
+    for (int i=0; i<size(); ++i)
+    {   
+        if (info_[i].work_) return false;
+        if (!info_[i].dxl_->syncReadPosVelCur(t_pos, t_vel, t_tor)) return false;
+        {
+            for (size_t j=0; j<info_[i].num_; ++j)
+            {
+                pos[index+j] = t_pos[j];
+                vel[index+j] = t_vel[j];
+                tor[index+j] = t_tor[j];
+            }
+        }
+        index += info_[i].num_;
+    }
+    return true;
+}
+
+bool MotorDriver::write(std::vector<float>& input)
+{
+    int index = 0;
+    std::vector<float> t_input;
+    for (const Info& info: info_)
+    {
+        if (info.work_) return false;
+        t_input.resize(info.num_);
+        for (size_t j=0; j<info.num_; ++j)
+        {
+            t_input[j] = input[index+j];
+        }
+        if (info.mode_ == DxlCtl::PositionControl)
+        {
+            if (!info.dxl_->syncWritePos(t_input)) return false;
+        }
+        else if (info.mode_ == DxlCtl::VelocityControl)
+        {
+            if (!info.dxl_->syncWriteVel(t_input)) return false;
+        }
+        index += info.num_;
+    }
+    return true;
 }
 
 std::vector<float> MotorDriver::getPos(const int chain_id) 
