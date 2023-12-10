@@ -4,27 +4,6 @@
 extern Threads threads;
 namespace motor_interface
 {
-// void setup(MotorDriver& driver, const arduino::dynamixel::Model model)
-// {
-// // setup motor config
-//   std::vector<uint8_t> ids1{11, 12, 13, 21, 22, 23, 31, 32, 33};
-//   std::vector<uint8_t> ids2{41, 42, 43, 51, 52, 53, 61, 62, 63};
-//   std::vector<int32_t> origin1{0, 0, 0, 0, 0, 0, 0, 0, 0};
-//   std::vector<int32_t> origin2{0, 0, 0, 0, 0, 0, 0, 0, 0};
-//   std::vector<float> input{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-//   driver.addMotorChain(ids1, origin1, std::make_shared<HardwareSerial>(Serial3));
-//   driver.addMotorChain(ids2, origin2, std::make_shared<HardwareSerial>(Serial4));
-//   const long baudrate = 1e6;
-//   const float period = 10; // milli seond
-//   driver.ready(baudrate, period, model); 
-
-//   // set initial state
-//   driver.setInput(0, input);
-//   driver.setInput(1, input);
-
-//   // start communication with motor
-//   driver.start();
-// }
 
 void read(MotorDriver& driver, std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
 {
@@ -63,6 +42,39 @@ void threadRW(int i)
         start = micros();
         if (!info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_)) info.work_ = false;  
 
+        if (info.mode_ == DxlCtl::PositionControl)
+        {
+            if (!info.dxl_->syncWritePos(info.input_, info.mx_in_)) info.work_ = false;
+        }
+        else if (info.mode_ == DxlCtl::VelocityControl)
+        {
+            if (!info.dxl_->syncWriteVel(info.input_, info.mx_in_)) info.work_ = false;
+        }
+        info_[i].elapsed_time_ = micros() - start;
+        while (micros() - start) threads.yield();
+    }
+}
+
+void threadRead(int i)
+{
+    MotorDriver::Info& info = info_[i];
+    long start;
+    while (info.work_)
+    {
+        start = micros();
+        if (!info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_)) info.work_ = false;
+        info_[i].elapsed_time_ = micros() - start;
+        while (micros() - start) threads.yield();
+    }
+}
+
+void threadWrite(int i)
+{
+    MotorDriver::Info& info = info_[i];
+    long start;
+    while (info.work_)
+    {
+        start = micros();
         if (info.mode_ == DxlCtl::PositionControl)
         {
             if (!info.dxl_->syncWritePos(info.input_, info.mx_in_)) info.work_ = false;
@@ -242,53 +254,6 @@ std::vector<float> MotorDriver::getTor(const int chain_id)
     Threads::Scope lock(info_[chain_id].mx_out_);
     return info_[chain_id].tor_;
 }
-
-// void MotorDriver::getData(Robot& robot)
-// {
-//     std::vector<float> pos, vel, tor;
-//     std::array<float, 3> t_pos, t_vel, t_tor;
-//     int leg_ind = 0;
-//     for (int i=0; i<size_; ++i)
-//     {
-//         pos = getPos(i);
-//         vel = getVel(i);
-//         tor = getTor(i);
-        
-//         for (size_t j=0; j<info_[i].num_; ++leg_ind)
-//         {
-//             for (size_t k=0; k<3; ++k, ++j)
-//             {
-//                 t_pos[k] = pos[j];
-//                 t_vel[k] = vel[j];
-//                 t_tor[k] = tor[j];
-//             }
-//             robot.legs_[leg_ind].setObsAngle(t_pos);
-//             robot.legs_[leg_ind].observed_angular_velocity_ = t_vel;
-//             robot.legs_[leg_ind].observed_torque_ = t_tor;
-//         }
-//     }
-// }
-
-// void MotorDriver::setData(Robot& robot, const std::vector<float>& pos, const std::vector<float>& vel,  const std::vector<float>& tor)
-// {
-//     std::array<float, 3> t_pos, t_vel, t_tor;
-//     int leg_ind = 0;
-
-//     for (size_t j=0; j<pos.size();)
-//     {
-//         for (size_t k=0; k<3; ++k, ++j)
-//         {
-//             t_pos[k] = pos[j];
-//             t_vel[k] = vel[j];
-//             t_tor[k] = tor[j];
-//         }
-//         robot.legs_[leg_ind].setObsAngle(t_pos);
-//         robot.legs_[leg_ind].observed_angular_velocity_ = t_vel;
-//         robot.legs_[leg_ind].observed_torque_ = t_tor;
-//         ++leg_ind;
-//     }
-// }
-
 
 void MotorDriver::setInput(const int chain_id, std::vector<float>& value)
 {

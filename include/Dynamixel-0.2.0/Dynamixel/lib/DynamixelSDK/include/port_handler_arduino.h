@@ -25,6 +25,7 @@
 
 #include <Arduino.h>
 #include "types.h"
+#include <TeensyThreads.h> // for thread
 
 namespace dynamixel {
 
@@ -42,6 +43,7 @@ private:
     double tx_time_per_byte;
 
     Stream* stream;
+    Threads::Mutex mx_;
 
 public:
     PortHandler(uint8_t pin_rts_enable)
@@ -60,6 +62,7 @@ public:
     }
 
     void attach(Stream& s, size_t baud) {
+        Threads::Scope scope(mx_);
         stream = &s;
         baudrate_ = baud;
         tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
@@ -67,13 +70,18 @@ public:
     }
 
     void clearPort() {
+        Threads::Scope scope(mx_);
         stream->flush();
         while (stream->available()) stream->read();
     }
 
-    int getBytesAvailable() { return stream->available(); }
+    int getBytesAvailable() { 
+        Threads::Scope scope(mx_);
+        return stream->available();
+    }
 
     int readPort(uint8_t* packet, int length) {
+        Threads::Scope scope(mx_);
         int rx_length = stream->available();
         if (rx_length > length) rx_length = length;
 
@@ -82,6 +90,7 @@ public:
     }
 
     int writePort(uint8_t* packet, int length) {
+        Threads::Scope scope(mx_);
         set_tx(true);
         int length_written = stream->write(packet, length);
         set_tx(false);
@@ -122,6 +131,7 @@ private:
     inline bool isOneRtsPin() { return !(pin_rts_enable == 0xFF); }
 
     void set_tx(bool b) {
+        Threads::Scope scope(mx_);
         if (!b) stream->flush();  // make sure it completes before we disable...
         drv_dxl_tx_enable(b);
     }

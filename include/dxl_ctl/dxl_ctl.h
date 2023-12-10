@@ -19,7 +19,7 @@ class DxlCtl {
 
         uint8_t indirect_data_num_ = 0;
         std::vector<uint16_t> indirect_data_size_;
-        uint8_t shutdown_ = 0x52;
+        uint8_t shutdown_ = 0b00111100; // other than over voltage error
 
         const float kDxl2Rad_ = M_PI/2048; // [dxl]->[rad]
         const float kDxl2Vel_ = 0.229f*2.0f*M_PI/60.0f; // [dxl]->[rad/s]
@@ -27,7 +27,7 @@ class DxlCtl {
         const float kRad2Dxl_ = 2048/M_PI;
         const float kVel2Dxl_ = 60.0f/(2.0f*M_PI*0.229f);
         const float kCur2Dxl_ = 1.0f/2.69f;
-    
+
     public:
         enum Reg {
             TorqueEnable = 64,

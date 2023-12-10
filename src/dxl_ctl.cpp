@@ -52,6 +52,7 @@ bool DxlCtl::addShutdonwStatus(const HardwareError err) {
     std::vector<uint8_t> input;
     input.resize(id_.size());
     for (uint8_t& i: input) i = shutdown_ | err;
+    
     if (!dxif_->syncwriteshutdown(id_.data(), input.data(), id_.size())) return false;
     shutdown_ |= err;
     return true;
@@ -60,9 +61,9 @@ bool DxlCtl::addShutdonwStatus(const HardwareError err) {
 bool DxlCtl::removeShutdownStatus(const HardwareError err) {
     std::vector<uint8_t> input;
     input.resize(id_.size());
-    for (uint8_t& i: input) i = shutdown_ - err;
+    for (uint8_t& i: input) i = (shutdown_ | err) - err;
     if (!dxif_->syncwriteshutdown(id_.data(), input.data(), id_.size())) return false;
-    shutdown_ -= err;
+    shutdown_ = (shutdown_| err) - err;
     return true;
 }
 
