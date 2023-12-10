@@ -80,8 +80,10 @@ class DxlCtl {
 
         // error 
         // if shutdown_& <hardware error status> > 0, the motor shutdowns. 
-        bool addShutdonwStatus(const HardwareError err);
-        bool removeShutdownStatus(const HardwareError err);
+        // bool addShutdonwStatus(const HardwareError err);
+        bool addShutdonwStatus(const uint8_t err);
+        // bool removeShutdownStatus(const HardwareError err);
+        bool removeShutdownStatus(const uint8_t err);
 
         // transform
         float dxl2rad(const int32_t pos, const int32_t origin);

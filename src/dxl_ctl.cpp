@@ -48,7 +48,7 @@ bool DxlCtl::setModel(const std::vector<uint8_t>& id, const std::vector<int32_t>
     return true;
 }
 
-bool DxlCtl::addShutdonwStatus(const HardwareError err) {
+bool DxlCtl::addShutdonwStatus(const uint8_t err) {
     std::vector<uint8_t> input;
     input.resize(id_.size());
     for (uint8_t& i: input) i = shutdown_ | err;
@@ -58,7 +58,7 @@ bool DxlCtl::addShutdonwStatus(const HardwareError err) {
     return true;
 }
 
-bool DxlCtl::removeShutdownStatus(const HardwareError err) {
+bool DxlCtl::removeShutdownStatus(const uint8_t err) {
     std::vector<uint8_t> input;
     input.resize(id_.size());
     for (uint8_t& i: input) i = (shutdown_ | err) - err;
