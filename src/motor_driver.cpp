@@ -154,6 +154,10 @@ bool MotorDriver::ready(const long baudrate, const float period) /// milli secon
         info_[i].mode_ = modes_[i];
         info_[i].period_ = period*1e3;
         info_[i].num_ = ids_[i].size();
+        info_[i].input_.resize(info_[i].num_);
+        info_[i].pos_.resize(info_[i].num_);
+        info_[i].vel_.resize(info_[i].num_);
+        info_[i].tor_.resize(info_[i].num_);
     } 
 
     return true;
@@ -249,6 +253,7 @@ std::vector<float> MotorDriver::getVel(const int chain_id)
     Threads::Scope lock(info_[chain_id].mx_out_);
     return info_[chain_id].vel_;
 }
+
 std::vector<float> MotorDriver::getTor(const int chain_id) 
 {
     Threads::Scope lock(info_[chain_id].mx_out_);
@@ -259,6 +264,20 @@ void MotorDriver::setInput(const int chain_id, std::vector<float>& value)
 {
     Threads::Scope lock(info_[chain_id].mx_in_);
     info_[chain_id].input_ = value;
+}
+
+void MotorDriver::setInput(const std::vector<float>& value)
+{
+    size_t index = 0;
+    for (size_t i=0; i<size(); ++i)
+    {
+        Threads::Scope lock(info_[i].mx_in_);
+        for (size_t j=0; j<info_[i].num_; ++j)
+        {
+            info_[i].input_[j] = value[index+j];
+        }
+        index += info_[i].num_;
+    }
 }
 
 std::shared_ptr<DxlCtl>& MotorDriver::getDriver(const int chain_id)

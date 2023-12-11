@@ -25,6 +25,7 @@ public:
     // return the number of motors connected with the motor chain i. 
     size_t size(const int i) const {return ids_[i].size();} 
     void setInput(const int chain_id, std::vector<float>& value);
+    void setInput(const std::vector<float>& value);
 
     struct Info
     {
