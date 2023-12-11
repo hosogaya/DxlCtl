@@ -62,7 +62,6 @@ public:
     }
 
     void attach(Stream& s, size_t baud) {
-        Threads::Scope scope(mx_);
         stream = &s;
         baudrate_ = baud;
         tx_time_per_byte = (1000.0 / (double)baudrate_) * 10.0;
@@ -90,9 +89,10 @@ public:
     }
 
     int writePort(uint8_t* packet, int length) {
-        Threads::Scope scope(mx_);
         set_tx(true);
+        mx_.lock();
         int length_written = stream->write(packet, length);
+        mx_.unlock();
         set_tx(false);
         return length_written;
     }
