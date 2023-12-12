@@ -32,7 +32,7 @@ void read(MotorDriver& driver, std::vector<float>& pos, std::vector<float>& vel,
     }
 }
 
-std::vector<MotorDriver::Info> info_;
+static std::vector<MotorDriver::Info> info_;
 void threadRW(int i)
 {
     MotorDriver::Info& info = info_[i];
@@ -90,7 +90,7 @@ void threadWrite(int i)
 
 void MotorDriver::addMotorChain(const arduino::dynamixel::Model model, const DxlCtl::OperatingMode mode, std::vector<u_int8_t>& ids, std::vector<int32_t>& origin, HardwareSerial& serial)
 {
-    this->addMotorChain(ids, origin, std::make_shared<HardwareSerial>(serial));
+    this->addMotorChain(ids, origin, serial);
     models_.push_back(model);
     modes_.push_back(mode);
 }
@@ -99,16 +99,19 @@ MotorDriver::MotorDriver()
 {}
 
 MotorDriver::~MotorDriver()
+{}
+
+void MotorDriver::release()
 {
     info_.clear();
 }
 
-bool MotorDriver::addMotorChain(std::vector<uint8_t> _ids, std::vector<int32_t> _origin,  std::shared_ptr<HardwareSerial> _serial)
+bool MotorDriver::addMotorChain(std::vector<uint8_t> _ids, std::vector<int32_t> _origin,  HardwareSerial& _serial)
 {
-    auto itr = std::find_if(serial_.begin(), serial_.end(), [_serial](const std::shared_ptr<HardwareSerial>& s){return s == _serial;});
+    auto itr = std::find_if(serial_.begin(), serial_.end(), [_serial](const HardwareSerial* s){return s == &_serial;});
     if (itr == serial_.end()) 
     {
-        serial_.push_back(_serial);
+        serial_.emplace_back(&_serial);
         ids_.push_back(_ids);
         origin_.push_back(_origin);
         info_.resize(ids_.size());
@@ -126,8 +129,8 @@ bool MotorDriver::addMotorChain(std::vector<uint8_t> _ids, std::vector<int32_t> 
     if (info_.size() != serial_.size()) return false;
     
     // check unique ness
-    auto serial_itr = std::unique(serial_.begin(), serial_.end());
-    if (serial_itr != serial_.end()) return false;
+    // auto serial_itr = std::unique(serial_.begin(), serial_.end());
+    // if (serial_itr != serial_.end()) return false;
     for (size_t i=0; i<ids_.size(); ++i)
     {
         // check size
@@ -144,13 +147,12 @@ bool MotorDriver::ready(const long baudrate, const float period) /// milli secon
 {
     for (size_t i=0; i<serial_.size(); ++i)
     {
-        serial_[i]->begin(baudrate);
         info_[i].dxl_ = std::make_shared<DxlCtl>();
         info_[i].dxl_->attach(*serial_[i], baudrate);
-        if (info_[i].dxl_->setModel(ids_[i], origin_[i], models_[i])) return false;
+        if (!info_[i].dxl_->setModel(ids_[i], origin_[i], models_[i])) return false;
 
         info_[i].dxl_->syncEnableTorque();
-        info_[i].work_ = true;
+        info_[i].work_ = false;
         info_[i].mode_ = modes_[i];
         info_[i].period_ = period*1e3;
         info_[i].num_ = ids_[i].size();
@@ -167,6 +169,7 @@ bool MotorDriver::start()
 {
     for (size_t i=0; i<info_.size(); ++i)
     {
+        info_[i].work_ = true;
         threads.addThread(threadRW, i);
     }
     return true;
@@ -202,8 +205,9 @@ bool MotorDriver::read(std::vector<float>& pos, std::vector<float>& vel, std::ve
     std::vector<float> t_pos, t_vel, t_tor;
     for (int i=0; i<size(); ++i)
     {   
-        if (info_[i].work_) return false;
+        if (info_[i].work_) return false; // prevent collision with thread function
         if (!info_[i].dxl_->syncReadPosVelCur(t_pos, t_vel, t_tor)) return false;
+        else
         {
             for (size_t j=0; j<info_[i].num_; ++j)
             {
@@ -223,7 +227,7 @@ bool MotorDriver::write(std::vector<float>& input)
     std::vector<float> t_input;
     for (const Info& info: info_)
     {
-        if (info.work_) return false;
+        if (info.work_) return false; // prevent the collision with thread function
         t_input.resize(info.num_);
         for (size_t j=0; j<info.num_; ++j)
         {

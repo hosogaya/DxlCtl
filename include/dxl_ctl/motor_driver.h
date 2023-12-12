@@ -27,6 +27,9 @@ public:
     void setInput(const int chain_id, std::vector<float>& value);
     void setInput(const std::vector<float>& value);
 
+    // if release the info object, you should call this function as well as the destructor.
+    static void release();
+
     struct Info
     {
         std::vector<float> pos_;
@@ -46,13 +49,13 @@ public:
 private:
     // std::vector<Info> info_;
     // chain*motor
-    bool addMotorChain(std::vector<uint8_t> motor_ids, std::vector<int32_t> origin,  std::shared_ptr<HardwareSerial> serial);
+    bool addMotorChain(std::vector<uint8_t> motor_ids, std::vector<int32_t> origin,  HardwareSerial& serial);
 
     int size_ = 0;
     std::vector<std::vector<uint8_t>> ids_;
     std::vector<std::vector<int32_t>> origin_;
 
-    std::vector<std::shared_ptr<HardwareSerial>> serial_;
+    std::vector<HardwareSerial*> serial_;
     std::vector<arduino::dynamixel::Model> models_;
     // std::vector<std::shared_ptr<std::thread>> thread_;
 
