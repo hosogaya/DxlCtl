@@ -172,7 +172,7 @@ bool MotorDriver::start()
     for (size_t i=0; i<info_.size(); ++i)
     {
         info_[i].work_ = true;
-        threads.addThread(threadRW, i);
+        threads.addThread(threadRW, i, 4096);
     }
     return true;
 }
