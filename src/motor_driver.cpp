@@ -35,13 +35,13 @@ void read(MotorDriver& driver, std::vector<float>& pos, std::vector<float>& vel,
 static std::vector<MotorDriver::Info> info_;
 void threadRW(int i)
 {
+    threads.setSliceMicros(10);
     MotorDriver::Info& info = info_[i];
     long start;
     while (info.work_)
     {
         start = micros();
         if (!info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_)) info.work_ = false;  
-
         if (info.mode_ == DxlCtl::PositionControl)
         {
             if (!info.dxl_->syncWritePos(info.input_, info.mx_in_)) info.work_ = false;
@@ -51,12 +51,13 @@ void threadRW(int i)
             if (!info.dxl_->syncWriteVel(info.input_, info.mx_in_)) info.work_ = false;
         }
         info_[i].elapsed_time_ = micros() - start;
-        while (micros() - start) threads.yield();
+        while (micros() - start < info.period_) threads.yield();
     }
 }
 
 void threadRead(int i)
 {
+    threads.setSliceMicros(10);
     MotorDriver::Info& info = info_[i];
     long start;
     while (info.work_)
@@ -64,12 +65,13 @@ void threadRead(int i)
         start = micros();
         if (!info.dxl_->syncReadPosVelCur(info.pos_, info.vel_, info.tor_, info.mx_out_)) info.work_ = false;
         info_[i].elapsed_time_ = micros() - start;
-        while (micros() - start) threads.yield();
+        while (micros() - start < info.period_) threads.yield();
     }
 }
 
 void threadWrite(int i)
 {
+    threads.setSliceMicros(10);
     MotorDriver::Info& info = info_[i];
     long start;
     while (info.work_)
@@ -84,7 +86,7 @@ void threadWrite(int i)
             if (!info.dxl_->syncWriteVel(info.input_, info.mx_in_)) info.work_ = false;
         }
         info_[i].elapsed_time_ = micros() - start;
-        while (micros() - start) threads.yield();
+        while (micros() - start < info.period_) threads.yield();
     }
 }
 
