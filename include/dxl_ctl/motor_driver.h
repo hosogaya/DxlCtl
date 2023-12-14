@@ -14,7 +14,7 @@ public:
     bool ready(const long baudrate, const float period);
     bool start();
     bool stop();
-    void getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
+    bool getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
     bool read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor);
     bool write(std::vector<float>& input);
     std::vector<float> getPos(const int chain_id);
@@ -24,8 +24,8 @@ public:
     int size() const;
     // return the number of motors connected with the motor chain i. 
     size_t size(const int i) const {return ids_[i].size();} 
-    void setInput(const int chain_id, std::vector<float>& value);
-    void setInput(const std::vector<float>& value);
+    bool setInput(const int chain_id, std::vector<float>& value);
+    bool setInput(const std::vector<float>& value);
 
     // if release the info object, you should call this function as well as the destructor.
     static void release();

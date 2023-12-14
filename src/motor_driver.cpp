@@ -183,11 +183,12 @@ bool MotorDriver::stop()
     return true;
 }
 
-void MotorDriver::getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
+bool MotorDriver::getState(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
 {
     int index = 0;
     for (int i=0; i<size(); ++i)
     {   
+        if (!info_[i].work_) return false; // thread does not work
         {
             Threads::Scope lock(info_[i].mx_out_);
             for (size_t j=0; j<info_[i].num_; ++j)
@@ -199,6 +200,7 @@ void MotorDriver::getState(std::vector<float>& pos, std::vector<float>& vel, std
         }
         index += info_[i].num_;
     }
+    return true;
 }
 
 bool MotorDriver::read(std::vector<float>& pos, std::vector<float>& vel, std::vector<float>& tor)
@@ -266,17 +268,21 @@ std::vector<float> MotorDriver::getTor(const int chain_id)
     return info_[chain_id].tor_;
 }
 
-void MotorDriver::setInput(const int chain_id, std::vector<float>& value)
+bool MotorDriver::setInput(const int chain_id, std::vector<float>& value)
 {
+    if (!info_[chain_id].work_) return false;
     Threads::Scope lock(info_[chain_id].mx_in_);
     info_[chain_id].input_ = value;
+
+    return true;
 }
 
-void MotorDriver::setInput(const std::vector<float>& value)
+bool MotorDriver::setInput(const std::vector<float>& value)
 {
     size_t index = 0;
     for (size_t i=0; i<size(); ++i)
     {
+        if (!info_[i].work_) return false;
         Threads::Scope lock(info_[i].mx_in_);
         for (size_t j=0; j<info_[i].num_; ++j)
         {
@@ -284,6 +290,8 @@ void MotorDriver::setInput(const std::vector<float>& value)
         }
         index += info_[i].num_;
     }
+    
+    return true;
 }
 
 std::shared_ptr<DxlCtl>& MotorDriver::getDriver(const int chain_id)
