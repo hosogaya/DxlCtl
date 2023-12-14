@@ -90,7 +90,7 @@ void threadWrite(int i)
     }
 }
 
-void MotorDriver::addMotorChain(const arduino::dynamixel::Model model, const DxlCtl::OperatingMode mode, std::vector<u_int8_t>& ids, std::vector<int32_t>& origin, HardwareSerial& serial)
+void MotorDriver::addMotorChain(const arduino::dynamixel::Model model, const DxlCtl::OperatingMode mode, std::vector<u_int8_t>& ids, std::vector<float>& origin, HardwareSerial& serial)
 {
     this->addMotorChain(ids, origin, serial);
     models_.push_back(model);
@@ -108,7 +108,7 @@ void MotorDriver::release()
     info_.clear();
 }
 
-bool MotorDriver::addMotorChain(std::vector<uint8_t> _ids, std::vector<int32_t> _origin,  HardwareSerial& _serial)
+bool MotorDriver::addMotorChain(std::vector<uint8_t> _ids, std::vector<float> _origin,  HardwareSerial& _serial)
 {
     auto itr = std::find_if(serial_.begin(), serial_.end(), [_serial](const HardwareSerial* s){return s == &_serial;});
     if (itr == serial_.end()) 

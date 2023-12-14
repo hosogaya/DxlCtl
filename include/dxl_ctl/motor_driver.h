@@ -10,7 +10,7 @@ public:
     MotorDriver();
     ~MotorDriver();
 
-    void addMotorChain(const arduino::dynamixel::Model model, const DxlCtl::OperatingMode mode, std::vector<u_int8_t>& ids, std::vector<int32_t>& origin, HardwareSerial& serial);
+    void addMotorChain(const arduino::dynamixel::Model model, const DxlCtl::OperatingMode mode, std::vector<u_int8_t>& ids, std::vector<float>& origin, HardwareSerial& serial);
     bool ready(const long baudrate, const float period);
     bool start();
     bool stop();
@@ -49,11 +49,11 @@ public:
 private:
     // std::vector<Info> info_;
     // chain*motor
-    bool addMotorChain(std::vector<uint8_t> motor_ids, std::vector<int32_t> origin,  HardwareSerial& serial);
+    bool addMotorChain(std::vector<uint8_t> motor_ids, std::vector<float> origin,  HardwareSerial& serial);
 
     int size_ = 0;
     std::vector<std::vector<uint8_t>> ids_;
-    std::vector<std::vector<int32_t>> origin_;
+    std::vector<std::vector<float>> origin_;
 
     std::vector<HardwareSerial*> serial_;
     std::vector<arduino::dynamixel::Model> models_;

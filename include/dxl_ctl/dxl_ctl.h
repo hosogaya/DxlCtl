@@ -10,7 +10,7 @@ class DxlCtl {
     protected:
         std::unique_ptr<Dynamixel> dxif_;
         std::vector<uint8_t> id_;
-        std::vector<int32_t> origin_;
+        std::vector<float> origin_;
         std::vector<int32_t> buff32_;
         std::vector<uint32_t> buffu32_;
         std::vector<int16_t> buff16_;
@@ -65,8 +65,8 @@ class DxlCtl {
         const std::vector<uint8_t>& getID();
         
         void attach(HardwareSerial& serial, const size_t baudrate);
-        bool addModel(const uint8_t id, const int32_t origin, const arduino::dynamixel::Model model);
-        bool setModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin, const arduino::dynamixel::Model model);
+        bool addModel(const uint8_t id, const float origin, const arduino::dynamixel::Model model);
+        bool setModel(const std::vector<uint8_t>& id, const std::vector<float>& origin, const arduino::dynamixel::Model model);
 
         // operating mode
         bool syncWriteOperatingMode(const uint8_t mode=3);
@@ -86,10 +86,10 @@ class DxlCtl {
         bool removeShutdownStatus(const uint8_t err);
 
         // transform
-        float dxl2rad(const int32_t pos, const int32_t origin);
+        float dxl2rad(const int32_t pos, const float origin);
         float dxl2vel(const int32_t vel);
         float dxl2cur(const int16_t cur);
-        int32_t rad2dxl(const float rad, const int32_t origin);
+        int32_t rad2dxl(const float rad, const float origin);
         int32_t vel2dxl(const float vel);
         int16_t cur2dxl(const float cur);
 

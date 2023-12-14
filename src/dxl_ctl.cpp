@@ -21,7 +21,7 @@ void DxlCtl::attach(HardwareSerial& serial, const size_t baudrate) {
 
 const std::vector<uint8_t>& DxlCtl::getID() {return id_;}
 
-bool DxlCtl::addModel(const uint8_t id, const int32_t origin, const arduino::dynamixel::Model model) {
+bool DxlCtl::addModel(const uint8_t id, const float origin, const arduino::dynamixel::Model model) {
     if (find(id)) return false; // already exisit
 
     id_.push_back(id);
@@ -33,7 +33,7 @@ bool DxlCtl::addModel(const uint8_t id, const int32_t origin, const arduino::dyn
     return true;
 }
 
-bool DxlCtl::setModel(const std::vector<uint8_t>& id, const std::vector<int32_t>& origin, const arduino::dynamixel::Model model) {
+bool DxlCtl::setModel(const std::vector<uint8_t>& id, const std::vector<float>& origin, const arduino::dynamixel::Model model) {
     if (id.size() != origin.size()) return false;
     id_.resize(id.size());
     origin_.resize(id.size());
@@ -120,7 +120,7 @@ bool DxlCtl::syncDisableTorque() {
     return dxif_->syncwritetorqueEnable(id_.data(), data.get(), id_.size());
 }
 
-float DxlCtl::dxl2rad(const int32_t pos, const int32_t origin) {
+float DxlCtl::dxl2rad(const int32_t pos, const float origin) {
     return static_cast<float>(pos - origin)*kDxl2Rad_;
 }
 
@@ -132,8 +132,8 @@ float DxlCtl::dxl2cur(const int16_t cur) {
     return static_cast<float>(cur)*kDxl2Cur_;
 }
 
-int32_t DxlCtl::rad2dxl(const float rad, const int32_t origin) {
-    return static_cast<int32_t>(rad*kRad2Dxl_) + origin;
+int32_t DxlCtl::rad2dxl(const float rad, const float origin) {
+    return static_cast<int32_t>(rad*kRad2Dxl_ + origin);
 }
 
 int32_t DxlCtl::vel2dxl(const float vel) {
